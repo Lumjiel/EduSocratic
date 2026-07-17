@@ -1,0 +1,37 @@
+app:
+  name: "EduSocratic"
+  env: "development"
+  debug: true
+  log_level: "INFO"
+
+database:
+  url: "postgresql+asyncpg://postgres:postgres@localhost:5432/edusocratic"
+  echo: false
+  pool_size: 10
+
+redis:
+  url: "redis://localhost:6379/0"
+  decode_responses: true
+
+llm:
+  provider: "openai"
+  openai_model: "gpt-4-turbo-preview"
+  zhipu_model: "glm-4"
+  max_retries: 3
+
+cost:
+  daily_limit_per_student: 20
+  monthly_budget_per_class: 50.0
+  per_request_cost: 0.02
+
+asr:
+  provider: "xunfei"
+  min_confidence: 0.7
+
+cache:
+  ttl: 86400
+  simhash_threshold: 3
+
+feishu:
+  verification_token: ""
+  encrypt_key: ""
