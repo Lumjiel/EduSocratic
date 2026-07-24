@@ -2,6 +2,8 @@
 
 > 2026 AI先锋未来人才大赛参赛作品 | EduSocratic团队
 
+> ⚠️ **开发状态（2026-07-24）**：系统正按 [`docs/迭代文档.md`](docs/迭代文档.md) 从零分级重建，Level 0-3 已完成（项目骨架 / 领域模型 / LLM 评估管道 / 飞书 Webhook）。下方架构图、核心模块、快速开始基于旧版设计，正在逐步替换；当前真实架构以 CLAUDE.md 为准。
+
 面向圆桌星球1-7年级线上小班思辨课程的AI评估系统。通过大语言模型从六个维度（观点清晰度、逻辑连贯性、证据支撑、多角度思考、回应与质疑、表达完整性）对学生思辨能力进行量化评估，解决思辨课堂"反馈效率低、个性化指导欠缺、学情无法量化"三大教学难题。
 
 ## 目录
@@ -24,12 +26,12 @@
 
 | 维度 | 1-2年级权重 | 3-4年级权重 | 5-7年级权重 |
 |------|------------|------------|------------|
-| 观点清晰度 | 40% | 30% | 15% |
-| 表达完整性 | 30% | — | — |
-| 逻辑连贯性 | — | 25% | 25% |
-| 证据支撑 | 15% | 25% | 20% |
-| 多角度思考 | — | 10% | 20% |
-| 回应与质疑 | 15% | 10% | 20% |
+| 观点清晰度 | 30% | 25% | 20% |
+| 逻辑连贯性 | — | 15% | 20% |
+| 证据支撑 | 25% | 20% | 20% |
+| 多角度思考 | — | 15% | 20% |
+| 回应与质疑 | 20% | 15% | 10% |
+| 表达完整性 | 25% | 10% | 10% |
 
 权重随年级动态调整，尊重认知发展规律。
 
@@ -104,7 +106,7 @@
 ```bash
 # 1. 克隆项目
 git clone https://github.com/Lumjiel/EduSocratic.git
-cd EduSocratic/edusocratic-feishu
+cd EduSocratic
 
 # 2. 创建虚拟环境
 python -m venv .venv
@@ -143,25 +145,21 @@ open http://localhost:8000/docs
 ## 项目结构
 
 ```
-edusocratic-feishu/
+.
 ├── app/
 │   ├── __init__.py
 │   ├── main.py                    # FastAPI 入口 + 依赖注入
 │   ├── config.py                  # 配置加载（pydantic-settings）
 │   │
 │   ├── api/                       # API Gateway 层
-│   │   ├── deps.py                # 依赖注入
 │   │   └── v1/
 │   │       ├── router.py          # 路由聚合
 │   │       ├── webhooks.py        # 飞书事件回调
 │   │       ├── assessment.py      # 评估接口 + 用量查询
-│   │       └── reports.py         # 报告接口
+│   │       └── reports.py         # 报告接口（stub）
 │   │
-│   ├── services/                  # Service 层（业务编排）
-│   │   ├── assessment_service.py  # 评估主流程编排
-│   │   ├── report_service.py      # 报告生成编排
-│   │   ├── feedback_service.py    # 教师反馈收集
-│   │   └── notification_service.py # 通知编排
+│   ├── services/                  # Service 层（业务编排，当前为空）
+│   │   └── __init__.py
 │   │
 │   ├── domain/                    # Domain 层（核心逻辑）
 │   │   ├── grading/
@@ -170,11 +168,11 @@ edusocratic-feishu/
 │   │   │   ├── prompt_manager.py  # Prompt模板管理（版本化）
 │   │   │   └── validator.py       # LLM输出校验 + 格式修复 + 兜底
 │   │   ├── report/
-│   │   │   ├── generator.py       # 报告生成器
+│   │   │   ├── generator.py       # 报告生成器（stub）
 │   │   │   └── templates.py       # 报告模板管理
 │   │   └── feedback/
-│   │       ├── collector.py       # 反馈收集 + Prompt漂移检测
-│   │       └── analyzer.py         # 反馈分析
+│   │       ├── collector.py       # 反馈收集 + Prompt漂移检测（DB 未接入）
+│   │       └── analyzer.py         # 反馈分析（DB 未接入）
 │   │
 │   ├── infrastructure/            # Infrastructure 层（外部适配）
 │   │   ├── llm/
@@ -193,43 +191,45 @@ edusocratic-feishu/
 │   │       └── oss.py             # 文件存储
 │   │
 │   ├── models/                    # 数据模型（SQLAlchemy ORM）
-│   │   └── __init__.py            # User/Classroom/Assessment/Feedback/Report
+│   │   └── __init__.py            # User/Classroom/StudentClass/Assessment/Feedback/Report
 │   │
-│   ├── tasks/                     # Celery 异步任务
+│   ├── tasks/                     # Celery 异步任务（占位，未接入引擎）
 │   │   ├── __init__.py            # Celery配置
 │   │   ├── assessment.py          # 评估异步任务
 │   │   └── report.py              # 报告异步任务
 │   │
 │   └── middleware/                # 中间件
-│       ├── logging.py             # 请求日志 + 链路追踪 + 限频
+│       ├── logging.py             # 请求日志 + 链路追踪
 │       └── error_handler.py       # 全局异常处理
 │
 ├── prompts/                       # Prompt 模板（外部化、版本化）
-│   ├── v1.0/
+│   ├── v1.0/                      # 当前生效版本
 │   │   ├── assessment_1_2.md      # 1-2年级评估Prompt
 │   │   ├── assessment_3_4.md      # 3-4年级评估Prompt
 │   │   ├── assessment_5_7.md      # 5-7年级评估Prompt
 │   │   └── format_repair.md       # 格式修复Prompt
-│   └── v1.1/                      # 后续版本Prompt
+│   └── v1.1/                      # 预留版本（空）
 │
 ├── config/                        # 配置文件
 │   ├── base.yaml                  # 基础配置
-│   ├── production.yaml            # 生产环境覆盖
-│   └── secret.env.example         # 环境变量模板
+│   └── production.yaml            # 生产环境覆盖
+│
+├── docs/                          # 项目文档
+│   ├── proposal-final.md          # 策划方案（终版）
+│   └── proposal-latest.md         # 策划方案（最新）
 │
 ├── tests/                         # 测试
 │   ├── conftest.py               # pytest fixtures
-│   ├── unit/                      # 单元测试
-│   │   └── test_dimensions.py     # 维度计算测试
-│   ├── integration/               # 集成测试
-│   └── fixtures/                  # 测试数据
+│   └── unit/
+│       └── test_dimensions.py     # 维度计算测试
 │
-├── migrations/                    # 数据库迁移（Alembic）
+├── migrations/                    # 数据库迁移（Alembic，当前为空）
 ├── docker-compose.yml             # 服务编排
 ├── Dockerfile
 ├── requirements.txt
-├── .env.example
+├── .env.example                   # 环境变量模板
 ├── .gitignore
+├── CLAUDE.md                      # Claude Code 工作约束
 └── README.md
 ```
 
